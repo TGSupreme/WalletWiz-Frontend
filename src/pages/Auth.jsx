@@ -25,6 +25,31 @@ export default function Auth() {
   }, [isAuthenticated, navigate]);
 
   const [btnWidth, setBtnWidth] = useState(280);
+  const [googleLoaded, setGoogleLoaded] = useState(false);
+
+  // Poll for window.google to handle script loading async race conditions
+  useEffect(() => {
+    if (window.google) {
+      setGoogleLoaded(true);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      if (window.google) {
+        setGoogleLoaded(true);
+        clearInterval(interval);
+      }
+    }, 100);
+
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+    }, 6000); // 6s timeout
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, []);
 
   // Measure and update Google button width responsively
   useEffect(() => {
@@ -47,9 +72,11 @@ export default function Auth() {
     };
   }, [isLogin, theme]);
 
-  // Load Google Identity button
+  const [isGoogleInitialized, setIsGoogleInitialized] = useState(false);
+
+  // 1. Initialize Google Identity once
   useEffect(() => {
-    if (window.google && btnWidth) {
+    if (window.google && googleLoaded && !isGoogleInitialized) {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id.apps.googleusercontent.com';
       
       window.google.accounts.id.initialize({
@@ -66,7 +93,14 @@ export default function Auth() {
           }
         },
       });
+      
+      setIsGoogleInitialized(true);
+    }
+  }, [googleLoaded, isGoogleInitialized]);
 
+  // 2. Render Google Identity Button when layout changes
+  useEffect(() => {
+    if (window.google && isGoogleInitialized && btnWidth) {
       // Clear previous buttons to prevent duplicate rendering
       const container = document.getElementById('google-btn-container');
       if (container) {
@@ -85,7 +119,7 @@ export default function Auth() {
         }
       );
     }
-  }, [isLogin, theme, btnWidth]);
+  }, [isLogin, theme, btnWidth, isGoogleInitialized]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -10,9 +10,11 @@ import {
   Store, 
   ChevronLeft, 
   ChevronRight, 
-  AlertCircle
+  AlertCircle,
+  Edit2
 } from 'lucide-react';
 import CustomSelect from '../components/ui/CustomSelect';
+import AddExpenseModal from '../components/ui/AddExpenseModal';
 
 const CATEGORIES = [
   "Food & Dining",
@@ -53,6 +55,11 @@ export default function Transactions() {
   
   // Deleting State
   const [deleteLoadingId, setDeleteLoadingId] = useState(null);
+  const [deleteConfirmTransaction, setDeleteConfirmTransaction] = useState(null);
+
+  // Editing State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTransactionForEdit, setSelectedTransactionForEdit] = useState(null);
 
   // Fetch Transactions from API
   const fetchTransactions = async () => {
@@ -107,17 +114,26 @@ export default function Transactions() {
     setCurrentPage(1);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
+  const triggerDeleteConfirm = (transaction) => {
+    setDeleteConfirmTransaction(transaction);
+  };
+
+  const triggerEdit = (transaction) => {
+    setSelectedTransactionForEdit(transaction);
+    setIsEditModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmTransaction) return;
+    const id = deleteConfirmTransaction._id || deleteConfirmTransaction.id;
+    setDeleteConfirmTransaction(null);
     
     setDeleteLoadingId(id);
     try {
       await transactionAPI.delete(id);
-      // Refresh list
       fetchTransactions();
     } catch (err) {
       console.error('Delete error:', err);
-      alert(err.message || 'Failed to delete transaction');
     } finally {
       setDeleteLoadingId(null);
     }
@@ -281,8 +297,18 @@ export default function Transactions() {
                     </span>
                   </div>
 
+                  {/* Edit Button */}
                   <button
-                    onClick={() => handleDelete(t._id || t.id)}
+                    onClick={() => triggerEdit(t)}
+                    className="w-8 h-8 rounded-lg bg-violet-500/5 hover:bg-violet-500/10 text-violet-500 flex items-center justify-center transition-colors cursor-pointer"
+                    title="Edit Expense"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => triggerDeleteConfirm(t)}
                     disabled={deleteLoadingId === (t._id || t.id)}
                     className="w-8 h-8 rounded-lg bg-rose-500/5 hover:bg-rose-500/10 text-rose-500 flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
                   >
@@ -326,6 +352,71 @@ export default function Transactions() {
           </button>
         </div>
       )}
+
+      {/* Custom Confirmation Modal for Deletion */}
+      {deleteConfirmTransaction && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-[320px] bg-white dark:bg-card-dark rounded-3xl border border-slate-100 dark:border-border-dark p-5 shadow-2xl animate-scale-up text-center transition-colors duration-300">
+            <div className="w-12 h-12 bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-3">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
+              Delete Transaction?
+            </h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-1.5 leading-normal">
+              Are you sure you want to permanently delete this expense?
+            </p>
+
+            {/* Selected Transaction Summary Card */}
+            <div className="my-3.5 p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-150 dark:border-slate-800 rounded-2xl text-left">
+              <div className="flex justify-between items-start gap-2.5">
+                <div className="truncate">
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate leading-tight">
+                    {deleteConfirmTransaction.merchant || 'Untitled Expense'}
+                  </p>
+                  <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5 leading-none">
+                    {deleteConfirmTransaction.category}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-black text-rose-500 dark:text-rose-450 leading-tight">
+                    ₹{deleteConfirmTransaction.amount?.toFixed(2)}
+                  </p>
+                  <p className="text-[9px] text-slate-450 dark:text-slate-500 font-bold mt-0.5 leading-none">
+                    {deleteConfirmTransaction.payment_method}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 mt-2">
+              <button
+                onClick={() => setDeleteConfirmTransaction(null)}
+                className="flex-1 py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold border border-slate-200 dark:border-border-dark rounded-xl active:scale-95 cursor-pointer transition-all duration-150"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-500/20 active:scale-95 cursor-pointer transition-all duration-150"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Expense Modal Mount */}
+      <AddExpenseModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedTransactionForEdit(null);
+        }}
+        onSuccess={fetchTransactions}
+        transactionToEdit={selectedTransactionForEdit}
+      />
 
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { transactionAPI } from '../../services/api';
 import { X, DollarSign, Calendar, Tag, CreditCard, Store, FileText } from 'lucide-react';
 import CustomSelect from './CustomSelect';
@@ -19,9 +19,7 @@ const PAYMENT_METHODS = [
   "UPI"
 ];
 
-export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast }) {
-  if (!isOpen) return null;
-
+export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast, transactionToEdit = null }) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0]);
@@ -34,6 +32,34 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast 
   
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Sync inputs when opening the modal for creating or editing
+  useEffect(() => {
+    if (isOpen) {
+      if (transactionToEdit) {
+        setAmount(transactionToEdit.amount?.toString() || '');
+        setCategory(transactionToEdit.category || CATEGORIES[0]);
+        setPaymentMethod(transactionToEdit.payment_method || PAYMENT_METHODS[0]);
+        setMerchant(transactionToEdit.merchant || '');
+        setDescription(transactionToEdit.description || '');
+        
+        const dateVal = transactionToEdit.transaction_date || transactionToEdit.created_at;
+        if (dateVal) {
+          setDate(dateVal.split('T')[0]);
+        } else {
+          setDate(new Date().toISOString().split('T')[0]);
+        }
+      } else {
+        setAmount('');
+        setCategory(CATEGORIES[0]);
+        setPaymentMethod(PAYMENT_METHODS[0]);
+        setMerchant('');
+        setDescription('');
+        setDate(new Date().toISOString().split('T')[0]);
+      }
+      setErrorMsg('');
+    }
+  }, [isOpen, transactionToEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,7 +78,6 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast 
 
     setLoading(true);
     try {
-      // Parse to ISO string for backend
       const transactionDate = date ? new Date(date).toISOString() : new Date().toISOString();
       
       const payload = {
@@ -64,10 +89,17 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast 
         transaction_date: transactionDate
       };
 
-      await transactionAPI.create(payload);
-      
-      if (showToast) {
-        showToast('Expense logged successfully!', 'success');
+      if (transactionToEdit) {
+        const id = transactionToEdit._id || transactionToEdit.id;
+        await transactionAPI.update(id, payload);
+        if (showToast) {
+          showToast('Expense updated successfully!', 'success');
+        }
+      } else {
+        await transactionAPI.create(payload);
+        if (showToast) {
+          showToast('Expense logged successfully!', 'success');
+        }
       }
       
       // Reset form
@@ -88,6 +120,8 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast 
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="absolute inset-0 z-50 flex items-end justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-fade-in">
       <div className="w-full max-w-sm bg-white dark:bg-card-dark rounded-t-3xl sm:rounded-3xl border border-slate-100 dark:border-border-dark p-6 shadow-2xl animate-slide-up transition-colors duration-300">
@@ -95,7 +129,7 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            Log New Expense
+            {transactionToEdit ? 'Edit Expense' : 'Log New Expense'}
           </h2>
           <button 
             onClick={onClose}
@@ -203,7 +237,7 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast 
             {loading ? (
               <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             ) : (
-              'Save Expense'
+              transactionToEdit ? 'Save Changes' : 'Log Expense'
             )}
           </button>
         </form>
