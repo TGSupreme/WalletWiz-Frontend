@@ -47,7 +47,7 @@ gantt
 * **Goals:** Wire up API configurations and core state contexts for authentication and styling.
 * **Tasks:**
   1. Create `src/services/api.js`:
-     * Configure base URL (`http://localhost:8000/api/v1`).
+     * Configure base URL using environment variables (`VITE_API_URL`).
      * Set up auth header interceptors.
      * Handle `401` logout triggers and `429` rate-limit errors.
   2. Implement `src/context/ThemeContext.jsx`:
