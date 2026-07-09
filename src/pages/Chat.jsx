@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '../context/ChatContext';
 import { useAuth } from '../context/AuthContext';
 import InlineTransactionCard from '../components/chat/InlineTransactionCard';
-import { Send, Bot, User, PlusCircle } from 'lucide-react';
+import { Send, Bot, User } from 'lucide-react';
 
 const formatMessage = (text) => {
   if (!text) return null;
@@ -40,7 +40,7 @@ const formatMessage = (text) => {
   });
 };
 
-export default function Chat({ onOpenAddModal }) {
+export default function Chat() {
   const { messages, loading, sendMessage, clearChat } = useChat();
   const { user } = useAuth();
   
@@ -167,14 +167,6 @@ export default function Chat({ onOpenAddModal }) {
             className="w-11 h-11 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white flex items-center justify-center rounded-2xl shadow-md shadow-violet-500/20 active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all cursor-pointer shrink-0"
           >
             <Send className="w-4.5 h-4.5" />
-          </button>
-          <button
-            type="button"
-            onClick={onOpenAddModal}
-            className="w-11 h-11 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-border-dark text-slate-450 hover:text-violet-500 hover:border-violet-500 flex items-center justify-center rounded-2xl active:scale-95 transition-all cursor-pointer shrink-0"
-            title="Log Expense Manually"
-          >
-            <PlusCircle className="w-5 h-5" />
           </button>
         </form>
       </div>

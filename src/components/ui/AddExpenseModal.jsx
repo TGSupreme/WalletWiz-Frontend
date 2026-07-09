@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { transactionAPI } from '../../services/api';
 import { X, DollarSign, Calendar, Tag, CreditCard, Store, FileText } from 'lucide-react';
+import CustomSelect from './CustomSelect';
 
 const CATEGORIES = [
   "Food & Dining",
@@ -146,38 +147,24 @@ export default function AddExpenseModal({ isOpen, onClose, onSuccess, showToast 
           </div>
 
           {/* Category Dropdown */}
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-500">
-              <Tag className="w-4 h-4" />
-            </span>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-border-dark focus:border-violet-500 dark:focus:border-violet-500 rounded-2xl text-sm focus:outline-none transition-colors duration-200 cursor-pointer appearance-none"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            value={category}
+            onChange={(val) => setCategory(val)}
+            options={CATEGORIES}
+            placeholder="Select Category"
+            icon={Tag}
+          />
 
           {/* Payment Method & Date (Two Column Layout) */}
           <div className="grid grid-cols-2 gap-3">
             {/* Payment Method */}
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 dark:text-slate-500">
-                <CreditCard className="w-4 h-4" />
-              </span>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full pl-9 pr-2 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-border-dark focus:border-violet-500 dark:focus:border-violet-500 rounded-2xl text-xs focus:outline-none transition-colors duration-200 cursor-pointer appearance-none"
-              >
-                {PAYMENT_METHODS.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              value={paymentMethod}
+              onChange={(val) => setPaymentMethod(val)}
+              options={PAYMENT_METHODS}
+              placeholder="Select Payment"
+              icon={CreditCard}
+            />
 
             {/* Date */}
             <div className="relative">

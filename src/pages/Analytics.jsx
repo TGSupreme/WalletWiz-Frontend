@@ -5,10 +5,10 @@ import {
   Calendar, 
   PieChart, 
   Activity, 
-  ChevronDown, 
   AlertCircle,
   CreditCard
 } from 'lucide-react';
+import CustomSelect from '../components/ui/CustomSelect';
 
 const CATEGORY_COLORS = {
   "Food & Dining": "#8b5cf6", // Violet
@@ -143,18 +143,17 @@ export default function Analytics() {
         </span>
 
         {/* Custom Select Trigger */}
-        <div className="relative">
-          <select
-            value={timeframe}
-            onChange={(e) => setTimeframe(e.target.value)}
-            className="appearance-none pl-3 pr-8 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-border-dark rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer focus:border-violet-500"
-          >
-            <option value="this-month">This Month</option>
-            <option value="last-30-days">Last 30 Days</option>
-            <option value="this-year">This Year</option>
-          </select>
-          <ChevronDown className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-        </div>
+        <CustomSelect
+          value={timeframe}
+          onChange={(val) => setTimeframe(val)}
+          options={[
+            { value: 'this-month', label: 'This Month' },
+            { value: 'last-30-days', label: 'Last 30 Days' },
+            { value: 'this-year', label: 'This Year' }
+          ]}
+          placeholder="Timeframe"
+          className="w-32"
+        />
       </div>
 
       {/* Main Content Dashboard */}

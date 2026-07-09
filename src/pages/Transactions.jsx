@@ -10,8 +10,9 @@ import {
   Store, 
   ChevronLeft, 
   ChevronRight, 
-  AlertCircle 
+  AlertCircle
 } from 'lucide-react';
+import CustomSelect from '../components/ui/CustomSelect';
 
 const CATEGORIES = [
   "Food & Dining",
@@ -154,38 +155,34 @@ export default function Transactions() {
         {/* Dropdown Filters */}
         <div className="flex gap-2 text-xs">
           {/* Category Dropdown */}
-          <div className="flex-1 relative">
-            <select
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full appearance-none px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-border-dark rounded-lg focus:outline-none focus:border-violet-500 text-slate-600 dark:text-slate-300 cursor-pointer text-[11px]"
-            >
-              <option value="">All Categories</option>
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            value={category}
+            onChange={(val) => {
+              setCategory(val);
+              setCurrentPage(1);
+            }}
+            options={[
+              { value: '', label: 'All Categories' },
+              ...CATEGORIES.map(cat => ({ value: cat, label: cat }))
+            ]}
+            placeholder="All Categories"
+            className="flex-1"
+          />
 
           {/* Payment Method Dropdown */}
-          <div className="flex-1 relative">
-            <select
-              value={paymentMethod}
-              onChange={(e) => {
-                setPaymentMethod(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full appearance-none px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-border-dark rounded-lg focus:outline-none focus:border-violet-500 text-slate-600 dark:text-slate-300 cursor-pointer text-[11px]"
-            >
-              <option value="">All Payments</option>
-              {PAYMENT_METHODS.map((pm) => (
-                <option key={pm} value={pm}>{pm}</option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            value={paymentMethod}
+            onChange={(val) => {
+              setPaymentMethod(val);
+              setCurrentPage(1);
+            }}
+            options={[
+              { value: '', label: 'All Payments' },
+              ...PAYMENT_METHODS.map(pm => ({ value: pm, label: pm }))
+            ]}
+            placeholder="All Payments"
+            className="flex-1"
+          />
 
           {/* Reset Filters Icon */}
           {(searchQuery || category || paymentMethod) && (
