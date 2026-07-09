@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ChatProvider } from './context/ChatContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import FABNavigation from './components/layout/FABNavigation';
 import AddExpenseModal from './components/ui/AddExpenseModal';
@@ -44,14 +45,7 @@ function AppContent() {
           <span className="text-xl font-bold bg-gradient-to-r from-violet-500 to-indigo-500 bg-clip-text text-transparent">
             WalletWiz
           </span>
-          {isAuthenticated ? (
-            <FABNavigation onOpenAddModal={() => setIsAddModalOpen(true)} />
-          ) : (
-            <div className="flex items-center gap-2 text-xs font-semibold px-2 py-1 bg-emerald-500/10 text-emerald-500 rounded-full">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-              Online
-            </div>
-          )}
+          {isAuthenticated && <FABNavigation />}
         </header>
 
         {/* Viewport content */}
@@ -61,7 +55,7 @@ function AppContent() {
               path="/"
               element={
                 <ProtectedRoute>
-                  <Chat />
+                  <Chat onOpenAddModal={() => setIsAddModalOpen(true)} />
                 </ProtectedRoute>
               }
             />
@@ -106,7 +100,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <ChatProvider>
+          <AppContent />
+        </ChatProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { useChat } from '../../context/ChatContext';
 import { 
   MessageSquare, 
   PieChart, 
@@ -11,13 +12,14 @@ import {
   LogOut, 
   X,
   Menu,
-  PlusCircle
+  Trash2
 } from 'lucide-react';
 
-export default function FABNavigation({ onOpenAddModal }) {
+export default function FABNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
+  const { clearChat } = useChat();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -100,17 +102,6 @@ export default function FABNavigation({ onOpenAddModal }) {
               <span className="text-[10px]">History</span>
             </button>
 
-            {/* Action: Add Expense */}
-            <button
-              onClick={() => {
-                onOpenAddModal();
-                setIsOpen(false);
-              }}
-              className="col-span-3 flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-2xl font-semibold text-xs shadow-md shadow-violet-500/10 transition-all active:scale-98 cursor-pointer"
-            >
-              <PlusCircle className="w-4.5 h-4.5" />
-              Log Manual Expense
-            </button>
 
             {/* Utility: Dark/Light Mode */}
             <button
@@ -130,12 +121,24 @@ export default function FABNavigation({ onOpenAddModal }) {
               )}
             </button>
 
+            {/* Utility: Clear Chat */}
+            <button
+              onClick={() => {
+                clearChat();
+                setIsOpen(false);
+              }}
+              className="flex flex-col items-center justify-center p-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-450 rounded-2xl text-[10px] transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-4.5 h-4.5 mb-1 text-rose-500" />
+              Clear Chat
+            </button>
+
             {/* Utility: Log Out */}
             <button
               onClick={logout}
-              className="col-span-2 flex items-center justify-center gap-2 p-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 rounded-2xl text-xs font-semibold transition-colors cursor-pointer"
+              className="flex flex-col items-center justify-center p-2.5 bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl text-[10px] transition-colors cursor-pointer"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4.5 h-4.5 mb-1 text-slate-500 dark:text-slate-400" />
               Sign Out
             </button>
           </div>
