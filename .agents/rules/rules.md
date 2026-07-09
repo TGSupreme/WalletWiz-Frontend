@@ -21,8 +21,11 @@ These instructions guide all code generation, UI/UX architecture decisions, and 
 * **Coding Standards:** Adhere strictly to the styling tokens (Tailwind CSS v4), mobile-first responsiveness, and layout architecture documented in `docs/design_specification.md`.
 * **Separation of Concerns (SRP):** Keep UI view components strictly isolated from direct API endpoints integration. Always use the Service Layer (`src/services/api.js`) and React Contexts (`src/context/`) to manage data queries, CRUD functions, and chat messages instead of fetching data directly inside component files.
 
----
-
 ## 4. Task Execution & Autonomy
 * **Wait for Instruction:** Never jump to the next stage or implement new pages/features immediately after finishing one.
 * **Explicit Approval:** You MUST wait for the user to explicitly say "proceed," "next stage," or provide a specific directive before moving on to any new work.
+
+---
+
+## 5. Version Control & Git Operations
+* **Strict Commit Ban:** Do NOT execute any `git commit`, `git add` (in preparation for commit), or `git push` commands. All commits, staging, and branch pushing must be managed manually and explicitly by the user. You may only run read-only commands (like `git status`) for checking work state.

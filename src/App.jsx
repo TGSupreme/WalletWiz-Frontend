@@ -12,6 +12,7 @@ import Chat from './pages/Chat';
 import Analytics from './pages/Analytics';
 import Transactions from './pages/Transactions';
 import Auth from './pages/Auth';
+import logoImg from './assets/logo.png';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -41,10 +42,8 @@ function AppContent() {
         />
 
         {/* Fixed Header */}
-        <header className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-          <span className="text-xl font-bold bg-gradient-to-r from-violet-500 to-indigo-500 bg-clip-text text-transparent">
-            WalletWiz
-          </span>
+        <header className="flex items-center justify-between px-6 py-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <img src={logoImg} alt="WalletWiz Logo" className="w-13 h-13 object-contain select-none" />
           {isAuthenticated && <FABNavigation />}
         </header>
 

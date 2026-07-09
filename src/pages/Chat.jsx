@@ -71,7 +71,7 @@ export default function Chat({ onOpenAddModal }) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-bg-dark transition-colors duration-300">
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-bg-dark transition-colors duration-300 animate-page-entry">
       
       {/* Chat Sub-Header removed for more viewport space */}
 

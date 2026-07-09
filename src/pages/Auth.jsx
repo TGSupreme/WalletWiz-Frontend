@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 export default function Auth() {
   const { isAuthenticated, login, register, loginGoogle } = useAuth();
@@ -115,13 +116,11 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 bg-slate-50 dark:bg-bg-dark transition-colors duration-300">
+    <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 bg-slate-50 dark:bg-bg-dark transition-colors duration-300 animate-page-entry">
       {/* Brand Header */}
-      <div className="flex flex-col items-center mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/25 mb-3">
-          <Sparkles className="w-6 h-6 text-white" />
-        </div>
-        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+      <div className="flex flex-col items-center mb-8 select-none">
+        <img src={logoImg} alt="WalletWiz Logo" className="w-22 h-22 object-contain select-none mb-3" />
+        <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">
           WalletWiz
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">

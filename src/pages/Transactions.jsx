@@ -132,7 +132,7 @@ export default function Transactions() {
   });
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-bg-dark transition-colors duration-300">
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-bg-dark transition-colors duration-300 animate-page-entry">
       
       {/* Search & Filter Controls Header */}
       <div className="bg-white dark:bg-card-dark border-b border-slate-100 dark:border-border-dark p-4 space-y-3 shrink-0">

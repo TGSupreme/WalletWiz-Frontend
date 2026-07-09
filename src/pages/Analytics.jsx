@@ -6,7 +6,8 @@ import {
   PieChart, 
   Activity, 
   ChevronDown, 
-  AlertCircle 
+  AlertCircle,
+  CreditCard
 } from 'lucide-react';
 
 const CATEGORY_COLORS = {
@@ -53,36 +54,59 @@ export default function Analytics() {
     fetchAnalytics();
   }, [timeframe]);
 
-  // Parse category data and filter out zero values or dummy index labels ("0", "1")
+  // Parse category data supporting both old dictionary and new array schemas
   const activeCategoryData = data?.by_category
-    ? Object.keys(data.by_category)
-        .map(cat => {
-          const total = parseFloat(data.by_category[cat]) || 0;
-          const overallTotal = parseFloat(data.total_spent) || 1;
-          return {
-            category: cat,
-            total: total,
-            percentage: Math.round((total / overallTotal) * 100)
-          };
-        })
-        .filter(c => c.total > 0 && c.category !== "0" && c.category !== "1")
+    ? (Array.isArray(data.by_category)
+        ? data.by_category.map(item => ({
+            category: item.category,
+            total: parseFloat(item.amount ?? item.total_amount) || 0,
+            percentage: Math.round(parseFloat(item.percentage)) || 0
+          }))
+        : Object.keys(data.by_category).map(cat => {
+            const total = parseFloat(data.by_category[cat]) || 0;
+            const overallTotal = parseFloat(data.total_spent) || 1;
+            return {
+              category: cat,
+              total: total,
+              percentage: Math.round((total / overallTotal) * 100)
+            };
+          })
+      )
+      .filter(c => c.total > 0 && c.category !== "0" && c.category !== "1")
+      .sort((a, b) => b.total - a.total)
+    : [];
+
+  // Parse payment method distribution supporting both amount and total_amount keys
+  const activePaymentData = Array.isArray(data?.by_payment_method)
+    ? data.by_payment_method
+        .map(item => ({
+          method: item.payment_method,
+          total: parseFloat(item.amount ?? item.total_amount) || 0,
+          percentage: Math.round(parseFloat(item.percentage)) || 0
+        }))
+        .filter(p => p.total > 0)
         .sort((a, b) => b.total - a.total)
     : [];
 
   // Determine if backend response contains zero valid spend data or is completely empty
-  const isEmpty = !data || 
-                  activeCategoryData.length === 0 || 
-                  (parseFloat(data.total_spent) || 0) === 0 ||
-                  (data.transaction_count || 0) === 0;
+  const isEmpty = !data || (parseFloat(data.total_spent) || 0) === 0;
 
-  // Active Spending Trends Calculations
-  const activeTrendData = data?.daily_trends && data.daily_trends.length > 0
-    ? data.daily_trends
-    : [];
+  // Active Spending Trends Calculations supporting both daily_trends and daily_trend fields
+  const activeTrendData = data?.daily_trend || data?.daily_trends || [];
 
   const totalSpent = !isEmpty ? (parseFloat(data?.total_spent) || 0) : 0;
-  const transactionCount = !isEmpty ? (data?.transaction_count || 0) : 0;
-  const dailyAverage = !isEmpty ? (totalSpent / (timeframe === 'this-year' ? 365 : 30)) : 0;
+  const transactionCount = !isEmpty ? (data?.transaction_count ?? (data?.recent_transactions?.length || 0)) : 0;
+
+  // Parse recent transactions list from backend
+  const recentTransactions = Array.isArray(data?.recent_transactions)
+    ? data.recent_transactions
+    : [];
+
+  const dailyAverage = !isEmpty 
+    ? (data?.daily_average !== undefined 
+        ? parseFloat(data.daily_average) 
+        : (totalSpent / (timeframe === 'this-year' ? 365 : 30))) 
+    : 0;
 
   // SVG Donut Calculations
   let accumulatedPercentage = 0;
@@ -93,12 +117,12 @@ export default function Analytics() {
   const chartHeight = 80;
   const chartWidth = 300;
   const maxTrendVal = activeTrendData.length > 0 
-    ? Math.max(...activeTrendData.map(d => parseFloat(d.total) || 0), 1)
+    ? Math.max(...activeTrendData.map(d => parseFloat(d.amount ?? d.total) || 0), 1)
     : 1;
   
   const points = activeTrendData.map((d, index) => {
-    const totalVal = parseFloat(d.total) || 0;
-    const x = (index / (activeTrendData.length - 1)) * chartWidth;
+    const totalVal = parseFloat(d.amount ?? d.total) || 0;
+    const x = activeTrendData.length > 1 ? (index / (activeTrendData.length - 1)) * chartWidth : 0;
     const y = chartHeight - ((totalVal / maxTrendVal) * (chartHeight - 20)) - 10;
     return { x, y, date: d.date, total: totalVal };
   });
@@ -109,7 +133,7 @@ export default function Analytics() {
     : '';
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-bg-dark transition-colors duration-300">
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-bg-dark transition-colors duration-300 animate-page-entry">
       
       {/* Timeframe Selector Sub-Header */}
       <div className="bg-white dark:bg-card-dark border-b border-slate-100 dark:border-border-dark px-6 py-3.5 flex items-center justify-between shrink-0">
@@ -238,68 +262,137 @@ export default function Analytics() {
             )}
 
             {/* Visual Section: Category Breakdown Donut */}
-            <div className="bg-white dark:bg-card-dark border border-slate-100 dark:border-border-dark rounded-3xl p-5 shadow-2xs">
-              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-1">
-                <PieChart className="w-4 h-4 text-violet-500" />
-                Category Distribution
-              </h4>
+            {activeCategoryData.length > 0 && (
+              <div className="bg-white dark:bg-card-dark border border-slate-100 dark:border-border-dark rounded-3xl p-5 shadow-2xs">
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-1">
+                  <PieChart className="w-4 h-4 text-violet-500" />
+                  Category Distribution
+                </h4>
 
-              <div className="flex flex-col items-center gap-5 sm:flex-row sm:justify-around">
-                {/* SVG Donut Visual */}
-                <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
-                  <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                    {/* Background Ring */}
-                    <circle cx="50" cy="50" r={donutRadius} fill="transparent" stroke="#f1f5f9" strokeWidth="9" className="dark:stroke-slate-800" />
-                    
-                    {/* Color Segments */}
-                    {activeCategoryData.map((c, index) => {
-                      const segmentLength = (c.percentage / 100) * donutCircumference;
-                      const segmentOffset = donutCircumference - segmentLength;
-                      const currentAccumulatedOffset = (accumulatedPercentage / 100) * donutCircumference;
+                <div className="flex flex-col items-center gap-5 sm:flex-row sm:justify-around">
+                  {/* SVG Donut Visual */}
+                  <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                      {/* Background Ring */}
+                      <circle cx="50" cy="50" r={donutRadius} fill="transparent" stroke="#f1f5f9" strokeWidth="9" className="dark:stroke-slate-800" />
                       
-                      accumulatedPercentage += c.percentage;
-                      const strokeColor = CATEGORY_COLORS[c.category] || '#64748b';
+                      {/* Color Segments */}
+                      {activeCategoryData.map((c, index) => {
+                        const segmentLength = (c.percentage / 100) * donutCircumference;
+                        const segmentOffset = donutCircumference - segmentLength;
+                        const currentAccumulatedOffset = (accumulatedPercentage / 100) * donutCircumference;
+                        
+                        accumulatedPercentage += c.percentage;
+                        const strokeColor = CATEGORY_COLORS[c.category] || '#64748b';
 
-                      return (
-                        <circle
-                          key={index}
-                          cx="50"
-                          cy="50"
-                          r={donutRadius}
-                          fill="transparent"
-                          stroke={strokeColor}
-                          strokeWidth="9.5"
-                          strokeDasharray={donutCircumference}
-                          strokeDashoffset={currentAccumulatedOffset}
-                          className="transition-all duration-500"
-                        />
-                      );
-                    })}
-                  </svg>
-                  
-                  {/* Center Text label */}
-                  <div className="absolute text-center">
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold block uppercase leading-none">Share</span>
-                    <span className="text-xs font-black text-slate-800 dark:text-slate-100 mt-0.5 block leading-none">100%</span>
+                        return (
+                          <circle
+                            key={index}
+                            cx="50"
+                            cy="50"
+                            r={donutRadius}
+                            fill="transparent"
+                            stroke={strokeColor}
+                            strokeWidth="9.5"
+                            strokeDasharray={donutCircumference}
+                            strokeDashoffset={currentAccumulatedOffset}
+                            className="transition-all duration-500"
+                          />
+                        );
+                      })}
+                    </svg>
+                    
+                    {/* Center Text label */}
+                    <div className="absolute text-center">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold block uppercase leading-none">Share</span>
+                      <span className="text-xs font-black text-slate-800 dark:text-slate-100 mt-0.5 block leading-none">100%</span>
+                    </div>
+                  </div>
+
+                  {/* Donut Legend */}
+                  <div className="flex-1 w-full space-y-2.5">
+                    {activeCategoryData.map((c, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-[11px]">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${CATEGORY_COLORS_BG[c.category] || 'bg-slate-500'}`}></span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">{c.category}</span>
+                        </div>
+                        <div className="text-right font-bold text-slate-800 dark:text-slate-100">
+                          ₹{c.total.toFixed(0)} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium ml-1">({c.percentage}%)</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              </div>
+            )}
 
-                {/* Donut Legend */}
-                <div className="flex-1 w-full space-y-2.5">
-                  {activeCategoryData.map((c, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-[11px]">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${CATEGORY_COLORS_BG[c.category] || 'bg-slate-500'}`}></span>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">{c.category}</span>
+            {/* Visual Section: Payment Method Share */}
+            {activePaymentData.length > 0 && (
+              <div className="bg-white dark:bg-card-dark border border-slate-100 dark:border-border-dark rounded-3xl p-5 shadow-2xs">
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-violet-500" />
+                  Payment Methods
+                </h4>
+                <div className="space-y-4">
+                  {activePaymentData.map((p, idx) => (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                        <span>{p.method}</span>
+                        <span>₹{p.total.toFixed(0)} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium ml-1">({p.percentage}%)</span></span>
                       </div>
-                      <div className="text-right font-bold text-slate-800 dark:text-slate-100">
-                        ₹{c.total.toFixed(0)} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium ml-1">({c.percentage}%)</span>
+                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-violet-500 rounded-full" 
+                          style={{ width: `${p.percentage}%` }}
+                        ></div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Visual Section: Recent Activity */}
+            {recentTransactions.length > 0 && (
+              <div className="bg-white dark:bg-card-dark border border-slate-100 dark:border-border-dark rounded-3xl p-5 shadow-2xs">
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-violet-500" />
+                  Recent Activity
+                </h4>
+                <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  {recentTransactions.slice(0, 5).map((t, idx) => {
+                    const dateStr = t.transaction_date || t.created_at;
+                    const formattedDate = dateStr 
+                      ? new Date(dateStr).toLocaleDateString(undefined, { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })
+                      : '';
+                    return (
+                      <div key={t.id || idx} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">
+                            {t.merchant || 'Untitled Expense'}
+                          </p>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 leading-none">
+                            {t.category} • {formattedDate}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-black text-rose-500 dark:text-rose-400">
+                            -₹{(parseFloat(t.amount) || 0).toFixed(2)}
+                          </p>
+                          <span className="inline-block mt-0.5 px-1.5 py-0.5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-border-dark text-[9px] font-bold text-slate-400 dark:text-slate-500 rounded-md leading-none">
+                            {t.payment_method}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </>
         )}
         
