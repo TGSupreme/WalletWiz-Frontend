@@ -4,6 +4,42 @@ import { useAuth } from '../context/AuthContext';
 import InlineTransactionCard from '../components/chat/InlineTransactionCard';
 import { Send, Bot, User, PlusCircle } from 'lucide-react';
 
+const formatMessage = (text) => {
+  if (!text) return null;
+  const lines = text.split('\n');
+  return lines.map((line, lineIdx) => {
+    const isBullet = line.trim().startsWith('* ') || line.trim().startsWith('- ');
+    const processInline = (str) => {
+      const parts = str.split(/(\*\*.*?\*\*|`.*?`)/g);
+      return parts.map((part, partIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={partIdx} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
+        }
+        if (part.startsWith('`') && part.endsWith('`')) {
+          return <code key={partIdx} className="px-1 py-0.5 bg-slate-100 dark:bg-slate-800/80 rounded font-mono text-[10px] text-violet-500 font-semibold">{part.slice(1, -1)}</code>;
+        }
+        return part;
+      });
+    };
+    if (isBullet) {
+      const cleanLine = line.trim().replace(/^[-*]\s+/, '');
+      return (
+        <li key={lineIdx} className="ml-4 list-disc mb-1 pl-1">
+          {processInline(cleanLine)}
+        </li>
+      );
+    }
+    if (!line.trim()) {
+      return <div key={lineIdx} className="h-1.5" />;
+    }
+    return (
+      <p key={lineIdx} className="mb-0.5 last:mb-0 leading-normal">
+        {processInline(line)}
+      </p>
+    );
+  });
+};
+
 export default function Chat({ onOpenAddModal }) {
   const { messages, loading, sendMessage, clearChat } = useChat();
   const { user } = useAuth();
@@ -64,7 +100,7 @@ export default function Chat({ onOpenAddModal }) {
                     ? 'bg-violet-600 text-white rounded-br-none shadow-md shadow-violet-500/10' 
                     : 'bg-white dark:bg-card-dark text-slate-800 dark:text-slate-100 border border-slate-100 dark:border-border-dark rounded-bl-none shadow-xs'
                 }`}>
-                  <span>{message.content}</span>
+                  {formatMessage(message.content)}
                 </div>
 
                 {/* Inline Transaction Card Render (Log Transaction Tool) */}
