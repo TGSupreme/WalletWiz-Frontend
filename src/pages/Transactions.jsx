@@ -274,12 +274,12 @@ export default function Transactions() {
                   </div>
 
                   <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
-                    {t.merchant}
+                    {t.description || t.merchant}
                   </h4>
                   
                   {t.description && (
                     <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate italic">
-                      "{t.description}"
+                      {t.merchant}
                     </p>
                   )}
 

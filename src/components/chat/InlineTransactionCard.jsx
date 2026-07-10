@@ -43,11 +43,11 @@ export default function InlineTransactionCard({ transactionData }) {
         <div>
           <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 leading-tight">
             <Store className="w-4 h-4 text-slate-400 shrink-0" />
-            {merchant}
+            {description || merchant}
           </h4>
           {description && (
             <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 italic">
-              "{description}"
+              {merchant}
             </p>
           )}
         </div>

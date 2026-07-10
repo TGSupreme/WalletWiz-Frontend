@@ -372,10 +372,10 @@ export default function Analytics() {
                       <div key={t.id || idx} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                         <div>
                           <p className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">
-                            {t.merchant || 'Untitled Expense'}
+                            {t.description || t.merchant || 'Untitled Expense'}
                           </p>
                           <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5 leading-none">
-                            {t.category} • {formattedDate}
+                            {t.category} {t.description && t.merchant ? `• ${t.merchant}` : ''} • {formattedDate}
                           </p>
                         </div>
                         <div className="text-right">
