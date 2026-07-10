@@ -1,5 +1,4 @@
-import React from 'react';
-import { Check, Calendar, Tag, CreditCard, Store } from 'lucide-react';
+import { Check, Calendar, Tag, CreditCard, Store, FileText } from 'lucide-react';
 
 const CATEGORY_COLORS = {
   "Food & Dining": "bg-violet-500/10 text-violet-600 border-violet-500/20 dark:text-violet-400",
@@ -42,12 +41,13 @@ export default function InlineTransactionCard({ transactionData }) {
       <div className="flex items-start justify-between gap-4 mb-3">
         <div>
           <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 leading-tight">
-            <Store className="w-4 h-4 text-slate-400 shrink-0" />
-            {description || merchant}
+            <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+            {description || 'Untitled Expense'}
           </h4>
-          {description && (
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 italic">
-              {merchant}
+          {merchant && (
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 italic flex items-center gap-1 leading-none">
+              <Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              "{merchant}"
             </p>
           )}
         </div>
